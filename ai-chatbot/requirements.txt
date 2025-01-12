@@ -1,0 +1,8 @@
+streamlit
+speechrecognition
+gtts
+pydub
+numpy
+pythreejs
+vrm-py
+flask
