@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chatbot with 3D Character</title>
+    <title>AI Chat with 3D Character</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://unpkg.com/three@0.147.0/build/three.min.js"></script>
     <script src="https://unpkg.com/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -20,23 +20,13 @@
             background: #1a1a1a;
             color: #fff;
             height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .main-container {
-            display: flex;
-            height: calc(100vh - 40px);
-            margin: 20px;
-            gap: 20px;
-        }
-
-        .model-container {
-            flex: 1;
-            background: #2a2a2a;
-            border-radius: 15px;
             overflow: hidden;
+        }
+
+        .scene-container {
             position: relative;
+            width: 100vw;
+            height: 100vh;
         }
 
         #vrm-canvas {
@@ -44,106 +34,128 @@
             height: 100%;
         }
 
-        .chat-container {
-            width: 400px;
-            background: #2a2a2a;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+        .chat-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
         }
 
-        .chat-header {
-            padding: 20px;
-            background: #333;
-            border-radius: 15px 15px 0 0;
-            display: flex;
+        .typing-indicator {
+            position: absolute;
+            left: 50%;
+            top: 25%;
+            transform: translateX(-50%);
+            background: rgba(66, 66, 66, 0.9);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: none;
             align-items: center;
-            gap: 15px;
+            gap: 4px;
         }
 
-        .bot-avatar {
-            width: 40px;
-            height: 40px;
-            background: #4CAF50;
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: white;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            animation: typingBounce 1.4s infinite;
         }
 
-        .bot-status {
-            display: flex;
-            flex-direction: column;
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
         }
 
-        .bot-name {
-            font-weight: bold;
-            font-size: 1.1em;
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
         }
 
-        .status {
-            font-size: 0.8em;
-            color: #4CAF50;
+        @keyframes typingBounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-4px);
+            }
         }
 
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        .messages-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
         }
 
         .message {
-            max-width: 80%;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
             padding: 12px 16px;
             border-radius: 15px;
-            position: relative;
-            animation: fadeIn 0.3s ease-out;
+            color: white;
+            max-width: 300px;
+            animation: messageAppear 0.3s ease-out;
+            background: rgba(66, 66, 66, 0.9);
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .message.bot-message {
+            top: 20%;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .user-message {
-            background: #4CAF50;
-            margin-left: auto;
-            border-radius: 15px 15px 0 15px;
-        }
-
-        .bot-message {
-            background: #424242;
-            margin-right: auto;
-            border-radius: 15px 15px 15px 0;
-        }
-
-        .message-time {
-            font-size: 0.7em;
-            color: rgba(255,255,255,0.7);
-            margin-top: 5px;
+        @keyframes messageExit {
+            from {
+                opacity: 1;
+                transform: translateY(0) translateX(-50%);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px) translateX(-50%);
+            }
         }
 
         .chat-input {
-            padding: 20px;
-            background: #333;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             gap: 10px;
-            align-items: center;
+            padding: 15px 20px;
+            background: rgba(51, 51, 51, 0.8);
+            border-radius: 25px;
+            pointer-events: auto;
+            z-index: 1000;
         }
 
         .input-field {
-            flex: 1;
-            padding: 15px;
+            width: 300px;
+            padding: 12px 15px;
             border: none;
-            border-radius: 25px;
-            background: #424242;
-            color: #fff;
+            border-radius: 20px;
+            background: rgba(66, 66, 66, 0.9);
+            color: transparent;
+            text-shadow: 0 0 0 #fff;
             font-size: 1em;
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.5);
         }
 
         .input-field:focus {
@@ -154,12 +166,15 @@
         .send-button {
             background: #4CAF50;
             border: none;
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             color: white;
             cursor: pointer;
             transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .send-button:hover {
@@ -169,76 +184,18 @@
         .send-button:active {
             transform: scale(0.95);
         }
-
-        .emotion-indicator {
-            font-size: 0.8em;
-            color: rgba(255,255,255,0.7);
-            margin-bottom: 5px;
-        }
-
-        .typing-indicator {
-            display: none;
-            padding: 12px 16px;
-            background: #424242;
-            border-radius: 15px;
-            margin-right: auto;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .typing-dots {
-            display: flex;
-            gap: 4px;
-        }
-
-        .dot {
-            width: 8px;
-            height: 8px;
-            background: #fff;
-            border-radius: 50%;
-            animation: bounce 1.4s infinite;
-        }
-
-        .dot:nth-child(2) { animation-delay: 0.2s; }
-        .dot:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-4px); }
-        }
     </style>
 </head>
 <body>
-    <div class="main-container">
-        <div class="model-container">
-            <canvas id="vrm-canvas"></canvas>
-        </div>
-
-        <div class="chat-container">
-            <div class="chat-header">
-                <div class="bot-avatar">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div class="bot-status">
-                    <div class="bot-name">AI Assistant</div>
-                    <div class="status">Online</div>
-                </div>
-            </div>
-
-            <div class="chat-messages" id="chat-messages">
-                <div class="message bot-message">
-                    Hello! How can I help you today? 😊
-                    <div class="message-time">Just now</div>
-                </div>
-            </div>
-
+    <div class="scene-container">
+        <canvas id="vrm-canvas"></canvas>
+        <div class="chat-overlay">
             <div class="typing-indicator" id="typing-indicator">
-                <div class="typing-dots">
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                </div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
             </div>
-
+            <div class="messages-container" id="messages-container"></div>
             <div class="chat-input">
                 <input type="text" class="input-field" id="user-input" placeholder="Type your message..." autocomplete="off">
                 <button class="send-button" id="send-button">
@@ -251,27 +208,27 @@
     <script>
         // Three.js initialization
         const canvas = document.getElementById('vrm-canvas');
-        const renderer = new THREE.WebGLRenderer({ 
-            canvas, 
+        const renderer = new THREE.WebGLRenderer({
+            canvas,
             antialias: true,
-            alpha: true 
+            alpha: true
         });
-        
+
         renderer.setSize(canvas.clientWidth, canvas.clientHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setClearColor(0x2a2a2a);
 
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(30, canvas.clientWidth / canvas.clientHeight, 0.1, 20.0);
-        camera.position.set(0, 1.5, 5);
-        camera.lookAt(0, 1.5, 0);
+        const camera = new THREE.PerspectiveCamera(10, canvas.clientWidth / canvas.clientHeight, 3, 40.0);
+        camera.position.set(0, 2, 5);
+        camera.lookAt(0, 1.5, 1);
 
         // Lighting
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(1, 1, 1).normalize();
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        directionalLight.position.set(1, 2, 1).normalize();
         scene.add(directionalLight);
-
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambientLight);
 
         // Load VRM model
@@ -279,7 +236,7 @@
         const loader = new THREE.GLTFLoader();
 
         loader.load(
-            '/static/models/avatar.vrm',  // Make sure this path points to your VRM file
+            '/static/models/avatar.vrm',
             (gltf) => {
                 THREE.VRM.from(gltf).then((vrm) => {
                     if (currentVrm) {
@@ -291,12 +248,50 @@
                     scene.add(vrm.scene);
 
                     vrm.scene.rotation.y = Math.PI;
-                    
-                    // Initial pose
+
+                    // Set initial pose
                     if (vrm.humanoid) {
+                        // Arms
+                        const leftArm = vrm.humanoid.getBoneNode('leftUpperArm');
+                        const rightArm = vrm.humanoid.getBoneNode('rightUpperArm');
+                        const leftForeArm = vrm.humanoid.getBoneNode('leftLowerArm');
+                        const rightForeArm = vrm.humanoid.getBoneNode('rightLowerArm');
+
+                        if (leftArm) {
+                            leftArm.rotation.z = 0.9;
+                            leftArm.rotation.x = 0.1;
+                        }
+                        if (rightArm) {
+                            rightArm.rotation.z = -0.9;
+                            rightArm.rotation.x = 0.1;
+                        }
+                        if (leftForeArm) {
+                            leftForeArm.rotation.x = 0.1;
+                        }
+                        if (rightForeArm) {
+                            rightForeArm.rotation.x = 0.1;
+                        }
+
+                        // Legs
+                        const leftUpLeg = vrm.humanoid.getBoneNode('leftUpperLeg');
+                        const rightUpLeg = vrm.humanoid.getBoneNode('rightUpperLeg');
+
+                        if (leftUpLeg) {
+                            leftUpLeg.rotation.z = 0.05;
+                        }
+                        if (rightUpLeg) {
+                            rightUpLeg.rotation.z = -0.05;
+                        }
+
+                        // Spine and neck
+                        const spine = vrm.humanoid.getBoneNode('spine');
                         const neck = vrm.humanoid.getBoneNode('neck');
+
+                        if (spine) {
+                            spine.rotation.x = 0.05;
+                        }
                         if (neck) {
-                            neck.rotation.y = -0.1;
+                            neck.rotation.x = -0.05;
                         }
                     }
                 });
@@ -305,44 +300,27 @@
             (error) => console.error('Error loading model:', error)
         );
 
-        // Animation states and parameters
-        let isAnimating = false;
-        const animationParams = {
-            head: { y: 0 },
-            body: { y: 0 }
-        };
-
-        function animateVRMModel() {
-            if (!currentVrm || !isAnimating) return;
-
-            // Animate head nodding and slight body movement
-            const neck = currentVrm.humanoid.getBoneNode('neck');
-            const spine = currentVrm.humanoid.getBoneNode('spine');
-            
-            if (neck) {
-                // Gentle nodding motion
-                animationParams.head.y = Math.sin(Date.now() * 0.005) * 0.1;
-                neck.rotation.x = animationParams.head.y;
-            }
-            
-            if (spine) {
-                // Subtle body movement
-                animationParams.body.y = Math.sin(Date.now() * 0.003) * 0.05;
-                spine.rotation.y = animationParams.body.y;
-            }
-        }
-
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
-            
+
             if (currentVrm) {
                 currentVrm.update(0.016);
-                animateVRMModel();
+
+                // Add smoother head movement while "talking"
+                if (isTalking) {
+                    const head = currentVrm.humanoid.getBoneNode('head');
+                    if (head) {
+                        head.rotation.y = 0.1 * Math.sin(Date.now() * 0.003);
+                        head.rotation.x = 0.05 * Math.sin(Date.now() * 0.002);
+                    }
+                }
             }
-            
+
             renderer.render(scene, camera);
         }
+
+        let isTalking = false;
 
         // Handle window resize
         function onResize() {
@@ -358,82 +336,73 @@
         onResize();
         animate();
 
-        const chatMessages = document.getElementById('chat-messages');
+        // Chat functionality
+        const typingIndicator = document.getElementById('typing-indicator');
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
-        const typingIndicator = document.getElementById('typing-indicator');
 
-        function showTypingIndicator() {
-            typingIndicator.style.display = 'block';
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
+        // Show typing indicator while user is typing
+        userInput.addEventListener('input', () => {
+            if (userInput.value.trim()) {
+                typingIndicator.style.display = 'flex';
+            } else {
+                typingIndicator.style.display = 'none';
+            }
+        });
 
-        function hideTypingIndicator() {
-            typingIndicator.style.display = 'none';
-        }
+        userInput.addEventListener('blur', () => {
+            if (!userInput.value.trim()) {
+                typingIndicator.style.display = 'none';
+            }
+        });
 
-        function addMessage(message, isUser = false) {
+        function addMessage(message) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-            
-            const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            messageDiv.innerHTML = `
-                ${message}
-                <div class="message-time">${currentTime}</div>
-            `;
-            
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            messageDiv.className = 'message bot-message';
+            messageDiv.textContent = message;
+
+            const container = document.getElementById('messages-container');
+            container.appendChild(messageDiv);
+
+            // Remove old messages
+            setTimeout(() => {
+                messageDiv.classList.add('exit');
+                setTimeout(() => {
+                    messageDiv.remove();
+                }, 300);
+            }, 5000);
         }
 
         async function sendMessage() {
-    const message = userInput.value.trim();
-    if (!message) return;
+            const message = userInput.value.trim();
+            if (!message) return;
 
-    addMessage(message, true);
-    userInput.value = '';
-    showTypingIndicator();
+            typingIndicator.style.display = 'none';
+            userInput.value = '';
+            isTalking = true;
 
-    // Start animation
-    isAnimating = true;
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
 
-    try {
-        const response = await fetch('/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ message: message })
-        });
+                const data = await response.json();
 
-        const data = await response.json();
-        
-        hideTypingIndicator();
-        if (data.status === 'success') {
-            addMessage(data.response);
-            
-            // Stop animation after 2 seconds
-            setTimeout(() => {
-                isAnimating = false;
-                // Reset positions
-                if (currentVrm) {
-                    const neck = currentVrm.humanoid.getBoneNode('neck');
-                    const spine = currentVrm.humanoid.getBoneNode('spine');
-                    if (neck) neck.rotation.x = 0;
-                    if (spine) spine.rotation.y = 0;
+                if (data.status === 'success') {
+                    addMessage(data.response);
+                } else {
+                    addMessage('Sorry, I encountered an error. Please try again.');
                 }
-            }, 2000);
-        } else {
-            addMessage('Sorry, I encountered an error. Please try again.');
-            isAnimating = false;
+            } catch (error) {
+                addMessage('Sorry, I encountered an error. Please try again.');
+            }
+
+            isTalking = false;
         }
-    } catch (error) {
-        hideTypingIndicator();
-        addMessage('Sorry, I encountered an error. Please try again.');
-        isAnimating = false;
-    }
-}
 
         // Event listeners
         sendButton.addEventListener('click', sendMessage);
@@ -442,6 +411,11 @@
                 sendMessage();
             }
         });
+
+        // Add initial bot message
+        setTimeout(() => {
+            addMessage('Hello! How can I help you today? 😊');
+        }, 1000);
 
         // Focus input field on page load
         userInput.focus();

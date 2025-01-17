@@ -1,0 +1,10 @@
+{
+    "greeting": [
+        "Hi! How can I help you today?",
+        "Hello! What's on your mind?"
+    ],
+    "how_are_you": [
+        "I'm doing well, thank you for asking! How about you?",
+        "I'm great! How are you today?"
+    ]
+}
