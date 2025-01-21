@@ -1,306 +1,139 @@
-# import nltk
-# import os
-
-# # Create a directory for NLTK data
-# nltk_data_dir = 'C:\\nltk_data'
-# if not os.path.exists(nltk_data_dir):
-#     os.makedirs(nltk_data_dir)
-
-# # Set the NLTK data path
-# nltk.data.path.append(nltk_data_dir)
-
-# # Download required NLTK data
-# for package in ['punkt', 'averaged_perceptron_tagger', 'wordnet', 'stopwords']:
-#     try:
-#         nltk.download(package, download_dir=nltk_data_dir)
-#         print(f"Successfully downloaded {package}")
-#     except Exception as e:
-#         print(f"Error downloading {package}: {e}")
-# from nltk.tokenize import word_tokenize
-# from nltk.corpus import stopwords
-# from nltk.stem import WordNetLemmatizer
-# from textblob import TextBlob
-# import json
-# import random
-# import datetime
-# # import os
-
-# class SimpleChatbot:
-#     def __init__(self):
-#         # Download required NLTK data
-#         try:
-#             nltk.download('punkt', quiet=True)
-#             nltk.download('stopwords', quiet=True)
-#             nltk.download('wordnet', quiet=True)
-#             nltk.download('averaged_perceptron_tagger', quiet=True)
-#         except:
-#             print("Note: NLTK data already downloaded or error in downloading")
-
-#         # Initialize processing tools
-#         self.lemmatizer = WordNetLemmatizer()
-#         self.stop_words = set(stopwords.words('english'))
-        
-#         # Load responses
-#         self.responses = self._load_responses()
-        
-#         # Initialize conversation history
-#         self.conversation_history = []
-        
-#     def _load_responses(self):
-#         """Load or create default response patterns"""
-#         default_responses = {
-#             'greeting': [
-#                 "Hi! How can I help you today?",
-#                 "Hello! What's on your mind?",
-#                 "Hey there! How are you doing?",
-#                 "Greetings! How may I assist you?"
-#             ],
-#             'how_are_you': [
-#                 "I'm doing well, thank you for asking! How about you?",
-#                 "I'm great! How are you today?",
-#                 "All good here! How are you feeling?"
-#             ],
-#             'goodbye': [
-#                 "Goodbye! Have a great day!",
-#                 "See you later! Take care!",
-#                 "Bye! It was nice chatting with you!"
-#             ],
-#             'thanks': [
-#                 "You're welcome!",
-#                 "Glad I could help!",
-#                 "My pleasure!"
-#             ],
-#             'default': [
-#                 "I'm not sure I understand. Could you rephrase that?",
-#                 "Interesting! Can you tell me more?",
-#                 "Could you elaborate on that?"
-#             ]
-#         }
-        
-#         # Try to load custom responses if file exists
-#         try:
-#             if os.path.exists('responses.json'):
-#                 with open('responses.json', 'r') as f:
-#                     return json.load(f)
-#         except:
-#             pass
-            
-#         return default_responses
-
-#     def _preprocess(self, text):
-#         """Preprocess the input text"""
-#         # Tokenize and convert to lowercase
-#         tokens = word_tokenize(text.lower())
-        
-#         # Remove stop words and lemmatize
-#         tokens = [self.lemmatizer.lemmatize(token) for token in tokens 
-#                  if token not in self.stop_words and token.isalnum()]
-        
-#         return tokens
-
-#     def _analyze_intent(self, tokens):
-#         """Determine the intent of the message"""
-#         # Define intent patterns
-#         greeting_words = {'hi', 'hello', 'hey', 'greetings'}
-#         how_are_you_words = {'how', 'are', 'you'}
-#         goodbye_words = {'bye', 'goodbye', 'farewell', 'cya'}
-#         thanks_words = {'thanks', 'thank', 'appreciate'}
-        
-#         # Convert tokens to set for intersection
-#         token_set = set(tokens)
-        
-#         # Check intents
-#         if token_set.intersection(greeting_words):
-#             return 'greeting'
-#         elif token_set.intersection(how_are_you_words):
-#             return 'how_are_you'
-#         elif token_set.intersection(goodbye_words):
-#             return 'goodbye'
-#         elif token_set.intersection(thanks_words):
-#             return 'thanks'
-            
-#         return 'default'
-
-#     def respond(self, user_input):
-#         """Generate a response to user input"""
-#         if not user_input.strip():
-#             return "I'm listening... 🌞"
-            
-#         # Preprocess input
-#         tokens = self._preprocess(user_input)
-        
-#         # Analyze sentiment
-#         sentiment = TextBlob(user_input).sentiment.polarity
-        
-#         # Determine intent
-#         intent = self._analyze_intent(tokens)
-        
-#         # Get response based on intent
-#         response = random.choice(self.responses.get(intent, self.responses['default']))
-        
-#         # Add to conversation history
-#         self.conversation_history.append({
-#             'user_input': user_input,
-#             'response': response,
-#             'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-#         })
-        
-#         return response
-
-#     def save_history(self):
-#         """Save conversation history to file"""
-#         with open('chat_history.json', 'w') as f:
-#             json.dump(self.conversation_history, f, indent=2)
-
-# # Main chat interface
-# def main():
-#     # Initialize the chatbot
-#     chatbot = SimpleChatbot()
-    
-#     print("Chatbot initialized! Type 'quit' to exit.")
-#     print("-" * 50)
-    
-#     while True:
-#         user_input = input("You: ").strip()
-        
-#         if user_input.lower() == 'quit':
-#             print("Saving chat history...")
-#             chatbot.save_history()
-#             print("Goodbye!")
-#             break
-            
-#         response = chatbot.respond(user_input)
-#         print(f"Bot: {response}")
-
-# if __name__ == "__main__":
-#     main()
-# # import nltk
-# # nltk.download('punkt')
-# # nltk.download('stopwords')
-# # nltk.download('wordnet')
-# # nltk.download('averaged_perceptron_tagger')
-
 import re
-from datetime import datetime
-from collections import deque
 import random
-import json
+from collections import defaultdict
+from typing import List, Dict, Tuple, Optional
 
 class AdvancedChatbot:
-    def __init__(self, knowledge_base_file="knowledge_base.json"):
-        # Initialize conversation history
-        self.conversation_history = deque(maxlen=10)
-        # Load knowledge base
-        try:
-            with open(knowledge_base_file, 'r') as f:
-                self.knowledge_base = json.load(f)
-        except FileNotFoundError:
-            self.knowledge_base = {
-                "greetings": ["hello", "hi", "hey", "greetings"],
-                "farewells": ["goodbye", "bye", "see you", "farewell"],
-                "responses": {
-                    "greeting": ["Hello! How can I help you today?", "Hi there! What's on your mind?"],
-                    "farewell": ["Goodbye! Have a great day!", "See you later! Take care!"],
-                    "unknown": ["I'm not sure about that.", "Could you rephrase that?", "I don't understand."],
-                    "thanks": ["You're welcome!", "Happy to help!", "Anytime!"]
-                },
-                "patterns": {
-                    "time": r"what(?:'s|\s+is)\s+the\s+time",
-                    "thanks": r"thank(?:s|\s+you)",
-                    "weather": r"(?:what's|what\s+is)\s+the\s+weather"
-                }
-            }
+    def __init__(self):
+        # Initialize response patterns and their corresponding responses
+        self.patterns = {
+            r'hello|hi|hey': [
+                'Hello! How can I help you today?',
+                'Hi there! What brings you here?',
+                'Hey! What can I do for you?'
+            ],
+            r'how are you': [
+                "I'm doing well, thank you for asking! How about you?",
+                "I'm great! How are you doing?",
+                "Doing fine, thanks! And yourself?"
+            ],
+            r'bye|goodbye': [
+                'Goodbye! Have a great day!',
+                'See you later! Take care!',
+                'Bye! Come back soon!'
+            ],
+            r'what is your name': [
+                "I'm ChatBot, nice to meet you!",
+                "You can call me ChatBot!",
+                "The name's ChatBot!"
+            ],
+            r'help|support': [
+                "I can help you with general questions, basic tasks, and friendly conversation. What do you need?",
+                "I'm here to assist! What kind of help are you looking for?",
+                "Sure, I'd be happy to help! What's on your mind?"
+            ]
+        }
         
-    def preprocess_input(self, user_input):
-        """Clean and normalize user input"""
-        # Convert to lowercase
-        cleaned_input = user_input.lower().strip()
-        # Remove extra whitespace
-        cleaned_input = ' '.join(cleaned_input.split())
-        return cleaned_input
+        # Context memory
+        self.context = {
+            'user_name': None,
+            'last_topic': None,
+            'conversation_history': []
+        }
+        
+        # Sentiment keywords
+        self.sentiment_words = {
+            'positive': ['good', 'great', 'excellent', 'amazing', 'wonderful', 'happy', 'love'],
+            'negative': ['bad', 'terrible', 'awful', 'horrible', 'sad', 'hate', 'poor'],
+            'neutral': ['okay', 'fine', 'alright', 'normal']
+        }
 
-    def pattern_match(self, user_input):
-        """Check if input matches any known patterns"""
-        for intent, pattern in self.knowledge_base["patterns"].items():
-            if re.search(pattern, user_input):
-                return intent
+    def preprocess_input(self, user_input: str) -> str:
+        """Preprocess the user input by converting to lowercase and removing extra whitespace."""
+        return ' '.join(user_input.lower().split())
+
+    def analyze_sentiment(self, text: str) -> str:
+        """Analyze the sentiment of the input text."""
+        words = text.lower().split()
+        
+        pos_count = sum(1 for word in words if word in self.sentiment_words['positive'])
+        neg_count = sum(1 for word in words if word in self.sentiment_words['negative'])
+        
+        if pos_count > neg_count:
+            return 'positive'
+        elif neg_count > pos_count:
+            return 'negative'
+        return 'neutral'
+
+    def extract_user_name(self, text: str) -> Optional[str]:
+        """Extract user name from input if mentioned."""
+        name_patterns = [
+            r'my name is (\w+)',
+            r"i'm (\w+)",
+            r'i am (\w+)',
+            r'call me (\w+)'
+        ]
+        
+        for pattern in name_patterns:
+            match = re.search(pattern, text.lower())
+            if match:
+                return match.group(1).capitalize()
         return None
 
-    def get_response(self, user_input):
-        """Generate appropriate response based on user input"""
+    def generate_response(self, user_input: str) -> str:
+        """Generate a response based on user input and context."""
         processed_input = self.preprocess_input(user_input)
         
-        # Add to conversation history
-        self.conversation_history.append(("user", processed_input))
+        # Update context
+        self.context['conversation_history'].append(('user', processed_input))
         
-        # Check for patterns
-        pattern_match = self.pattern_match(processed_input)
-        if pattern_match:
-            response = self.handle_pattern(pattern_match)
-            self.conversation_history.append(("bot", response))
-            return response
-            
-        # Check for greetings
-        if any(greeting in processed_input for greeting in self.knowledge_base["greetings"]):
-            response = random.choice(self.knowledge_base["responses"]["greeting"])
-            self.conversation_history.append(("bot", response))
-            return response
-            
-        # Check for farewells
-        if any(farewell in processed_input for farewell in self.knowledge_base["farewells"]):
-            response = random.choice(self.knowledge_base["responses"]["farewell"])
-            self.conversation_history.append(("bot", response))
-            return response
-            
-        # Check for thanks
-        if re.search(self.knowledge_base["patterns"]["thanks"], processed_input):
-            response = random.choice(self.knowledge_base["responses"]["thanks"])
-            self.conversation_history.append(("bot", response))
-            return response
-        
-        # Default response for unknown inputs
-        response = random.choice(self.knowledge_base["responses"]["unknown"])
-        self.conversation_history.append(("bot", response))
+        # Extract name if mentioned
+        name = self.extract_user_name(processed_input)
+        if name:
+            self.context['user_name'] = name
+            return f"Nice to meet you, {name}! How can I help you today?"
+
+        # Check for pattern matches
+        for pattern, responses in self.patterns.items():
+            if re.search(pattern, processed_input):
+                response = random.choice(responses)
+                
+                # Personalize response if we know the user's name
+                if self.context['user_name'] and random.random() < 0.3:  # 30% chance to use name
+                    response = f"{self.context['user_name']}, {response}"
+                
+                self.context['conversation_history'].append(('bot', response))
+                return response
+
+        # Handle unknown inputs based on sentiment
+        sentiment = self.analyze_sentiment(processed_input)
+        if sentiment == 'positive':
+            response = "I'm glad you're feeling positive! What would you like to talk about?"
+        elif sentiment == 'negative':
+            response = "I sense you might be feeling down. Is there something specific you'd like to discuss?"
+        else:
+            response = "I'm not sure I understand. Could you please rephrase that or ask me something specific?"
+
+        self.context['conversation_history'].append(('bot', response))
         return response
 
-    def handle_pattern(self, pattern):
-        """Handle specific patterns with appropriate responses"""
-        if pattern == "time":
-            return f"The current time is {datetime.now().strftime('%H:%M')}"
-        elif pattern == "weather":
-            return "I'm sorry, I don't have access to weather information."
-        return random.choice(self.knowledge_base["responses"]["unknown"])
-
-    def get_conversation_history(self):
-        """Return the conversation history"""
-        return list(self.conversation_history)
-
-    def add_knowledge(self, category, items):
-        """Add new knowledge to the chatbot"""
-        if category in self.knowledge_base:
-            if isinstance(self.knowledge_base[category], list):
-                self.knowledge_base[category].extend(items)
-            elif isinstance(self.knowledge_base[category], dict):
-                self.knowledge_base[category].update(items)
-
-    def save_knowledge_base(self, filename="knowledge_base.json"):
-        """Save the current knowledge base to a file"""
-        with open(filename, 'w') as f:
-            json.dump(self.knowledge_base, f, indent=4)
+    def get_conversation_history(self) -> List[Tuple[str, str]]:
+        """Return the conversation history."""
+        return self.context['conversation_history']
 
 # Example usage
-def main():
+def chat():
     chatbot = AdvancedChatbot()
-    print("Chatbot: Hello! Type 'bye' to exit.")
+    print("ChatBot: Hello! Type 'bye' to exit.")
     
     while True:
         user_input = input("You: ")
-        if user_input.lower() == 'bye':
-            print("Chatbot:", chatbot.get_response(user_input))
+        if user_input.lower() in ['bye', 'goodbye', 'exit']:
+            print("ChatBot:", chatbot.generate_response(user_input))
             break
-            
-        response = chatbot.get_response(user_input)
-        print("Chatbot:", response)
+        
+        response = chatbot.generate_response(user_input)
+        print("ChatBot:", response)
 
 if __name__ == "__main__":
-    main()
+    chat()

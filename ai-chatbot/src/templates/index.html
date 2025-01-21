@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -73,9 +74,12 @@
         }
 
         @keyframes typingBounce {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: translateY(0);
             }
+
             50% {
                 transform: translateY(-4px);
             }
@@ -112,6 +116,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -123,6 +128,7 @@
                 opacity: 1;
                 transform: translateY(0) translateX(-50%);
             }
+
             to {
                 opacity: 0;
                 transform: translateY(-20px) translateX(-50%);
@@ -186,6 +192,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="scene-container">
         <canvas id="vrm-canvas"></canvas>
@@ -197,22 +204,18 @@
             </div>
             <div class="messages-container" id="messages-container"></div>
             <div class="chat-input">
-                <input type="text" class="input-field" id="user-input" placeholder="Type your message..." autocomplete="off">
+                <input type="text" class="input-field" id="user-input" placeholder="Type your message..."
+                    autocomplete="off">
                 <button class="send-button" id="send-button">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
         </div>
     </div>
-
     <script>
-        // Three.js initialization
+        // Three.js initialization (unchanged setup)
         const canvas = document.getElementById('vrm-canvas');
-        const renderer = new THREE.WebGLRenderer({
-            canvas,
-            antialias: true,
-            alpha: true
-        });
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 
         renderer.setSize(canvas.clientWidth, canvas.clientHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -227,14 +230,15 @@
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
         directionalLight.position.set(1, 2, 1).normalize();
         scene.add(directionalLight);
-        
+
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.add(ambientLight);
 
-        // Load VRM model
+        // VRM model variables
         let currentVrm = null;
-        const loader = new THREE.GLTFLoader();
 
+        // Load VRM model
+        const loader = new THREE.GLTFLoader();
         loader.load(
             '/static/models/avatar.vrm',
             (gltf) => {
@@ -246,133 +250,165 @@
 
                     currentVrm = vrm;
                     scene.add(vrm.scene);
-
                     vrm.scene.rotation.y = Math.PI;
 
-                    // Set initial pose
-                    if (vrm.humanoid) {
-                        // Arms
-                        const leftArm = vrm.humanoid.getBoneNode('leftUpperArm');
-                        const rightArm = vrm.humanoid.getBoneNode('rightUpperArm');
-                        const leftForeArm = vrm.humanoid.getBoneNode('leftLowerArm');
-                        const rightForeArm = vrm.humanoid.getBoneNode('rightLowerArm');
-
-                        if (leftArm) {
-                            leftArm.rotation.z = 0.9;
-                            leftArm.rotation.x = 0.1;
-                        }
-                        if (rightArm) {
-                            rightArm.rotation.z = -0.9;
-                            rightArm.rotation.x = 0.1;
-                        }
-                        if (leftForeArm) {
-                            leftForeArm.rotation.x = 0.1;
-                        }
-                        if (rightForeArm) {
-                            rightForeArm.rotation.x = 0.1;
-                        }
-
-                        // Legs
-                        const leftUpLeg = vrm.humanoid.getBoneNode('leftUpperLeg');
-                        const rightUpLeg = vrm.humanoid.getBoneNode('rightUpperLeg');
-
-                        if (leftUpLeg) {
-                            leftUpLeg.rotation.z = 0.05;
-                        }
-                        if (rightUpLeg) {
-                            rightUpLeg.rotation.z = -0.05;
-                        }
-
-                        // Spine and neck
-                        const spine = vrm.humanoid.getBoneNode('spine');
-                        const neck = vrm.humanoid.getBoneNode('neck');
-
-                        if (spine) {
-                            spine.rotation.x = 0.05;
-                        }
-                        if (neck) {
-                            neck.rotation.x = -0.05;
-                        }
-                    }
+                    setTimeout(() => {
+                        waveAnimation();
+                    }, 1000); // Call hello animation
                 });
             },
             (progress) => console.log('Loading model...', (progress.loaded / progress.total * 100) + '%'),
             (error) => console.error('Error loading model:', error)
         );
+        function waveAnimation() {
+            if (!currentVrm || !currentVrm.humanoid) return;
 
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
+            const rightUpperArm = currentVrm.humanoid.getBoneNode('rightUpperArm');
+            const rightLowerArm = currentVrm.humanoid.getBoneNode('rightLowerArm');
+            const rightHand = currentVrm.humanoid.getBoneNode('rightHand');
 
-            if (currentVrm) {
-                currentVrm.update(0.016);
+            if (!rightUpperArm || !rightLowerArm || !rightHand) return;
 
-                // Add smoother head movement while "talking"
-                if (isTalking) {
-                    const head = currentVrm.humanoid.getBoneNode('head');
-                    if (head) {
-                        head.rotation.y = 0.1 * Math.sin(Date.now() * 0.003);
-                        head.rotation.x = 0.05 * Math.sin(Date.now() * 0.002);
-                    }
+            // Adjusted initial pose to match reference image
+            rightUpperArm.rotation.z = -Math.PI / 1;  // Lift arm higher
+            rightUpperArm.rotation.x = -Math.PI / 1;   // Slight forward tilt
+            rightUpperArm.rotation.y = Math.PI / 9;    // Slight outward rotation
+            rightLowerArm.rotation.z = -Math.PI / 8;   // Slight elbow bend
+            rightLowerArm.rotation.y = Math.PI / 6;    // Rotate forearm to face palm forward
+            rightHand.rotation.x = 0;                  // Keep hand straight
+            rightHand.rotation.y = -Math.PI / 6;       // Align palm to face forward
+
+            let startTime = Date.now();
+            let duration = 2000; // 2 seconds for each wave cycle
+            let waveCount = 0;
+            const maxWaves = 3; // Number of waves to perform
+
+            function animateWave() {
+                const elapsed = Date.now() - startTime;
+                const progress = (elapsed % duration) / duration;
+
+                // Gentler wave motion while maintaining high position
+                const waveAmplitude = Math.PI / 16; // Reduced amplitude for subtler motion
+                rightHand.rotation.z = Math.sin(progress * Math.PI * 2) * waveAmplitude;
+                rightUpperArm.rotation.z = -Math.PI / 2.5 + Math.sin(progress * Math.PI * 2) * (waveAmplitude / 2);
+
+                if (elapsed >= duration) {
+                    waveCount++;
+                    startTime = Date.now();
+                }
+
+                if (waveCount < maxWaves) {
+                    requestAnimationFrame(animateWave);
+                } else {
+                    // Reset to neutral pose
+                    setTimeout(() => {
+                        rightUpperArm.rotation.set(0, 0, 0);
+                        rightLowerArm.rotation.set(0, 0, 0);
+                        rightHand.rotation.set(0, 0, 0);
+                    }, 500);
                 }
             }
 
+            animateWave();
+        }
+
+
+        // function foldLeftElbow() {
+        //     if (!currentVrm || !currentVrm.humanoid) return;
+
+        //     // Get the upper and lower arm bones
+        //     const leftUpperArm = currentVrm.humanoid.getBoneNode('leftUpperArm');
+        //     const leftLowerArm = currentVrm.humanoid.getBoneNode('leftLowerArm');
+
+        //     if (!leftUpperArm || !leftLowerArm) return;
+
+        //     // Apply rotations
+        //     leftUpperArm.rotation.z = Math.PI / 4; // Rotate 45 degrees
+        //     leftLowerArm.rotation.z = -Math.PI / 6; // Adjust lower arm slightly for realism
+        // }
+
+
+        // Hello Animation
+        function triggerHelloAnimation() {
+            if (!currentVrm || !currentVrm.humanoid) return;
+
+            const leftArm = currentVrm.humanoid.getBoneNode('leftUpperArm');
+            const leftForearm = currentVrm.humanoid.getBoneNode('leftLowerArm');
+            const rightArm = currentVrm.humanoid.getBoneNode('rightUpperArm');
+
+            if (!leftArm || !leftForearm || !rightArm) return;
+
+            // Set specific rotations for the pose
+            leftArm.rotation.x = -Math.PI / 8; // Slightly lift the left upper arm
+            leftArm.rotation.y = Math.PI / 4; // Move the arm closer to the face
+            leftForearm.rotation.x = -Math.PI / 6; // Adjust the forearm for a bent look
+
+            rightArm.rotation.x = -Math.PI / 8; // Slightly raise the right arm
+            rightArm.rotation.y = -Math.PI / 12; // Slight outward angle
+        }
+
+        // Thinking Animation
+        function triggerThinkingAnimation() {
+            if (!currentVrm || !currentVrm.humanoid) return;
+
+            const head = currentVrm.humanoid.getBoneNode('head');
+            if (!head) return;
+
+            let progress = 0;
+            function animateThinking() {
+                progress += 0.05;
+                head.rotation.y = Math.sin(progress) * 0.1; // Subtle head nod
+                requestAnimationFrame(animateThinking);
+            }
+            animateThinking();
+        }
+
+        // Animation function
+        function animate() {
+            requestAnimationFrame(animate);
+            if (currentVrm) {
+                currentVrm.update(0.016); // Update VRM model
+            }
             renderer.render(scene, camera);
         }
 
-        let isTalking = false;
-
         // Handle window resize
         function onResize() {
-            const width = canvas.clientWidth;
-            const height = canvas.clientHeight;
-
+            const width = window.innerWidth;
+            const height = window.innerHeight;
             renderer.setSize(width, height);
             camera.aspect = width / height;
             camera.updateProjectionMatrix();
         }
-
         window.addEventListener('resize', onResize);
+
         onResize();
         animate();
 
-        // Chat functionality
-        const typingIndicator = document.getElementById('typing-indicator');
+        // Chat Functionality
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
+        const messagesContainer = document.getElementById('messages-container');
+        const typingIndicator = document.getElementById('typing-indicator');
 
-        // Show typing indicator while user is typing
-        userInput.addEventListener('input', () => {
-            if (userInput.value.trim()) {
-                typingIndicator.style.display = 'flex';
-            } else {
-                typingIndicator.style.display = 'none';
-            }
+        sendButton.addEventListener('click', () => sendMessage());
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
         });
 
-        userInput.addEventListener('blur', () => {
-            if (!userInput.value.trim()) {
-                typingIndicator.style.display = 'none';
-            }
-        });
 
-        function addMessage(message) {
+
+        function addMessage(content, sender) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'message bot-message';
-            messageDiv.textContent = message;
+            messageDiv.className = `message ${sender === 'bot' ? 'bot-message' : 'user-message'}`;
+            messageDiv.innerText = content;
 
-            const container = document.getElementById('messages-container');
-            container.appendChild(messageDiv);
+            messagesContainer.appendChild(messageDiv);
+            setTimeout(() => messageDiv.style.opacity = 1, 0);
 
-            // Remove old messages
-            setTimeout(() => {
-                messageDiv.classList.add('exit');
-                setTimeout(() => {
-                    messageDiv.remove();
-                }, 300);
-            }, 5000);
+            // Scroll to the latest message
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
-
         async function sendMessage() {
             const message = userInput.value.trim();
             if (!message) return;
@@ -419,6 +455,9 @@
 
         // Focus input field on page load
         userInput.focus();
+
     </script>
+
 </body>
+
 </html>
